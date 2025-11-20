@@ -2,6 +2,8 @@ import StreamingAvatar, {
   ConnectionQuality,
   StreamingTalkingMessageEvent,
   UserTalkingMessageEvent,
+  TaskType,
+  TaskMode,
 } from "@heygen/streaming-avatar";
 import React, { useRef, useState } from "react";
 
@@ -32,6 +34,7 @@ type StreamingAvatarContextProps = {
   setIsVoiceChatLoading: (isVoiceChatLoading: boolean) => void;
   isVoiceChatActive: boolean;
   setIsVoiceChatActive: (isVoiceChatActive: boolean) => void;
+  isVoiceChatActiveRef: React.MutableRefObject<boolean>;
 
   sessionState: StreamingAvatarSessionState;
   setSessionState: (sessionState: StreamingAvatarSessionState) => void;
@@ -51,6 +54,7 @@ type StreamingAvatarContextProps = {
     detail: StreamingTalkingMessageEvent;
   }) => void;
   handleEndMessage: () => void;
+  handleVoiceChatUserEndMessage: () => Promise<void>;
 
   isListening: boolean;
   setIsListening: (isListening: boolean) => void;
@@ -74,6 +78,7 @@ const StreamingAvatarContext = React.createContext<StreamingAvatarContextProps>(
     setSessionState: () => {},
     isVoiceChatActive: false,
     setIsVoiceChatActive: () => {},
+    isVoiceChatActiveRef: { current: false },
     stream: null,
     setStream: () => {},
     messages: [],
@@ -81,6 +86,7 @@ const StreamingAvatarContext = React.createContext<StreamingAvatarContextProps>(
     handleUserTalkingMessage: () => {},
     handleStreamingTalkingMessage: () => {},
     handleEndMessage: () => {},
+    handleVoiceChatUserEndMessage: async () => {},
     isListening: false,
     setIsListening: () => {},
     isUserTalking: false,
@@ -110,6 +116,13 @@ const useStreamingAvatarVoiceChatState = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [isVoiceChatLoading, setIsVoiceChatLoading] = useState(false);
   const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
+  // Use ref to track current voice chat state for event handlers
+  const isVoiceChatActiveRef = useRef(false);
+  
+  // Keep ref in sync with state
+  React.useEffect(() => {
+    isVoiceChatActiveRef.current = isVoiceChatActive;
+  }, [isVoiceChatActive]);
 
   return {
     isMuted,
@@ -118,10 +131,13 @@ const useStreamingAvatarVoiceChatState = () => {
     setIsVoiceChatLoading,
     isVoiceChatActive,
     setIsVoiceChatActive,
+    isVoiceChatActiveRef,
   };
 };
 
-const useStreamingAvatarMessageState = () => {
+const useStreamingAvatarMessageState = (
+  avatarRef: React.MutableRefObject<StreamingAvatar | null>,
+) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const currentSenderRef = useRef<MessageSender | null>(null);
 
@@ -181,6 +197,63 @@ const useStreamingAvatarMessageState = () => {
     currentSenderRef.current = null;
   };
 
+  const handleVoiceChatUserEndMessage = async () => {
+    // Get the last user message (most recent CLIENT message)
+    const lastUserMessageIndex = messages
+      .map((msg, idx) => ({ msg, idx }))
+      .reverse()
+      .find(({ msg }) => msg.sender === MessageSender.CLIENT);
+
+    if (!lastUserMessageIndex || !avatarRef.current) {
+      handleEndMessage();
+      return;
+    }
+
+    const lastUserMessage = lastUserMessageIndex.msg;
+
+    try {
+      // Format conversation history for API (all messages before the current user message)
+      const conversationHistory = messages
+        .slice(0, lastUserMessageIndex.idx)
+        .map((msg: Message) => ({
+          sender: msg.sender,
+          content: msg.content,
+        }));
+
+      // Call OpenAI API
+      const response = await fetch("/api/openai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: lastUserMessage.content,
+          conversationHistory,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate response");
+      }
+
+      const data = await response.json();
+      const aiResponse = data.response || "";
+
+      if (aiResponse && avatarRef.current) {
+        // Have avatar speak the AI response
+        await avatarRef.current.speak({
+          text: aiResponse,
+          taskType: TaskType.TALK,
+          taskMode: TaskMode.ASYNC,
+        });
+      }
+    } catch (error) {
+      console.error("Error generating OpenAI response for voice chat:", error);
+    } finally {
+      handleEndMessage();
+    }
+  };
+
   return {
     messages,
     clearMessages: () => {
@@ -190,6 +263,7 @@ const useStreamingAvatarMessageState = () => {
     handleUserTalkingMessage,
     handleStreamingTalkingMessage,
     handleEndMessage,
+    handleVoiceChatUserEndMessage,
   };
 };
 
@@ -229,7 +303,7 @@ export const StreamingAvatarProvider = ({
   const avatarRef = React.useRef<StreamingAvatar>(null);
   const voiceChatState = useStreamingAvatarVoiceChatState();
   const sessionState = useStreamingAvatarSessionState();
-  const messageState = useStreamingAvatarMessageState();
+  const messageState = useStreamingAvatarMessageState(avatarRef);
   const listeningState = useStreamingAvatarListeningState();
   const talkingState = useStreamingAvatarTalkingState();
   const connectionQualityState = useStreamingAvatarConnectionQualityState();

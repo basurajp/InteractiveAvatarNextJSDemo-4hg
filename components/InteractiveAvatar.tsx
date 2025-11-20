@@ -24,12 +24,13 @@ import { AVATARS } from "@/app/lib/constants";
 
 const DEFAULT_CONFIG: StartAvatarRequest = {
   quality: AvatarQuality.Low,
-  avatarName: AVATARS[0].avatar_id,
+  avatarName: "b1c95b2e7adc44ad983a5750752ba9b3",
   knowledgeId: undefined,
   voice: {
     rate: 1.5,
     emotion: VoiceEmotion.EXCITED,
     model: ElevenLabsModel.eleven_flash_v2_5,
+    voiceId: "00131ffbf1dd4a719bee6bd565b96fd1",
   },
   language: "en",
   voiceChatTransport: VoiceChatTransport.WEBSOCKET,

@@ -27,7 +27,9 @@ export const useStreamingAvatarSession = () => {
     handleUserTalkingMessage,
     handleStreamingTalkingMessage,
     handleEndMessage,
+    handleVoiceChatUserEndMessage,
     clearMessages,
+    isVoiceChatActiveRef,
   } = useStreamingAvatarContext();
   const { stopVoiceChat } = useVoiceChat();
 
@@ -121,7 +123,16 @@ export const useStreamingAvatarSession = () => {
         StreamingEvents.AVATAR_TALKING_MESSAGE,
         handleStreamingTalkingMessage,
       );
-      avatarRef.current.on(StreamingEvents.USER_END_MESSAGE, handleEndMessage);
+      // Use OpenAI handler for voice chat, regular handler for text chat
+      // Check dynamically if voice chat is active using ref
+      avatarRef.current.on(StreamingEvents.USER_END_MESSAGE, () => {
+        // Check if voice chat is active at the time of the event using ref
+        if (isVoiceChatActiveRef.current) {
+          handleVoiceChatUserEndMessage();
+        } else {
+          handleEndMessage();
+        }
+      });
       avatarRef.current.on(
         StreamingEvents.AVATAR_END_MESSAGE,
         handleEndMessage,
@@ -143,6 +154,8 @@ export const useStreamingAvatarSession = () => {
       handleUserTalkingMessage,
       handleStreamingTalkingMessage,
       handleEndMessage,
+      handleVoiceChatUserEndMessage,
+      isVoiceChatActiveRef,
       setIsAvatarTalking,
     ],
   );
