@@ -23,7 +23,7 @@ import { MessageHistory } from "./AvatarSession/MessageHistory";
 import { AVATARS } from "@/app/lib/constants";
 
 const DEFAULT_CONFIG: StartAvatarRequest = {
-  quality: AvatarQuality.Low,
+  quality: AvatarQuality.High,
   avatarName: "b1c95b2e7adc44ad983a5750752ba9b3",
   knowledgeId: "ee3e79e4d73b40efa12b7fb02cab569d",
   voice: {

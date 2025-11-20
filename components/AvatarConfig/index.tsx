@@ -115,6 +115,7 @@ export const AvatarConfig: React.FC<AvatarConfigProps> = ({
           renderOption={(option) => option}
           value={config.quality}
           onSelect={(option) => onChange("quality", option)}
+          disabled={true}
         />
       </Field>
       <Field label="Voice Chat Transport">
@@ -124,6 +125,7 @@ export const AvatarConfig: React.FC<AvatarConfigProps> = ({
           renderOption={(option) => option}
           value={config.voiceChatTransport}
           onSelect={(option) => onChange("voiceChatTransport", option)}
+          disabled={true}
         />
       </Field>
       {showMore && (
