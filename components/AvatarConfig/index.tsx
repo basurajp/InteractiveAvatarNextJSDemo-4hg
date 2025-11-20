@@ -59,6 +59,7 @@ export const AvatarConfig: React.FC<AvatarConfigProps> = ({
           placeholder="Enter custom knowledge base ID"
           value={config.knowledgeId}
           onChange={(value) => onChange("knowledgeId", value)}
+          disabled={true}
         />
       </Field>
       <Field label="Avatar ID">
