@@ -11,7 +11,7 @@ interface InputProps {
 export const Input = (props: InputProps) => {
   return (
     <input
-      className={`w-full text-white text-sm bg-zinc-700 py-2 px-6 rounded-lg outline-none ${props.className}`}
+      className={`w-full text-white text-sm bg-zinc-700 py-2 px-6 rounded-lg outline-none min-h-[44px] ${props.className}`}
       placeholder={props.placeholder}
       type="text"
       value={props.value || ""}

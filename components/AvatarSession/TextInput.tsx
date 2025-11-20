@@ -64,28 +64,30 @@ export const TextInput: React.FC = () => {
   }, [message, previousText, startListening, stopListening]);
 
   return (
-    <div className="flex flex-row gap-2 items-end w-full">
-      <Select
-        isSelected={(option) => option === taskType}
-        options={Object.values(TaskType)}
-        renderOption={(option) => option.toUpperCase()}
-        value={taskType.toUpperCase()}
-        onSelect={setTaskType}
-      />
-      <Select
-        isSelected={(option) => option === taskMode}
-        options={Object.values(TaskMode)}
-        renderOption={(option) => option.toUpperCase()}
-        value={taskMode.toUpperCase()}
-        onSelect={setTaskMode}
-      />
+    <div className="flex flex-col sm:flex-row gap-2 items-end w-full">
+      <div className="flex flex-row gap-2 w-full sm:w-auto">
+        <Select
+          isSelected={(option) => option === taskType}
+          options={Object.values(TaskType)}
+          renderOption={(option) => option.toUpperCase()}
+          value={taskType.toUpperCase()}
+          onSelect={setTaskType}
+        />
+        <Select
+          isSelected={(option) => option === taskMode}
+          options={Object.values(TaskMode)}
+          renderOption={(option) => option.toUpperCase()}
+          value={taskMode.toUpperCase()}
+          onSelect={setTaskMode}
+        />
+      </div>
       <Input
-        className="min-w-[500px]"
+        className="flex-1 min-w-0 sm:min-w-[300px] md:min-w-[500px]"
         placeholder={`Type something for the avatar to ${taskType === TaskType.REPEAT ? "repeat" : "respond"}...`}
         value={message}
         onChange={setMessage}
       />
-      <Button className="!p-2" onClick={handleSend}>
+      <Button className="!p-2 min-h-[44px] min-w-[44px] flex items-center justify-center" onClick={handleSend}>
         <SendIcon size={20} />
       </Button>
     </div>

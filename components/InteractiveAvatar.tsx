@@ -133,15 +133,21 @@ function InteractiveAvatar() {
             <AvatarConfig config={config} onConfigChange={setConfig} />
           )}
         </div>
-        <div className="flex flex-col gap-3 items-center justify-center p-4 border-t border-zinc-700 w-full">
+        <div className="flex flex-col gap-3 items-center justify-center p-3 md:p-4 border-t border-zinc-700 w-full">
           {sessionState === StreamingAvatarSessionState.CONNECTED ? (
             <AvatarControls />
           ) : sessionState === StreamingAvatarSessionState.INACTIVE ? (
-            <div className="flex flex-row gap-4">
-              <Button onClick={() => startSessionV2(true)}>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+              <Button 
+                onClick={() => startSessionV2(true)}
+                className="w-full sm:w-auto min-h-[44px]"
+              >
                 Start Voice Chat
               </Button>
-              <Button onClick={() => startSessionV2(false)}>
+              <Button 
+                onClick={() => startSessionV2(false)}
+                className="w-full sm:w-auto min-h-[44px]"
+              >
                 Start Text Chat
               </Button>
             </div>
